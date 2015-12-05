@@ -12,9 +12,9 @@ data SExpr = Atom String
 		| Sequence [SExpr]
 --		| Func String [SExpr]
 		| ExecFunc String [SExpr]
-		| BindFunc String [SExpr] SExpr
+		| BindFunc String [String] SExpr
 		| Func ([SExpr] -> SExpr)
-		| UserFunc String [SExpr] SExpr
+		| UserFunc [String] SExpr -- function arguments and body
 		| Error String
 
 
@@ -33,11 +33,12 @@ showSExpr (List xs) = "[" ++
 showSExpr (Sequence xs) = "{" ++  
 							intercalate "\n" (map showSExpr xs) 
 						++ "}"
-
---showSExpr (Func s args) = s ++ " " ++  
---							intercalate " " (map showSExpr args) 
+showSExpr (BindFunc funcName args expr)  = "Function " ++ funcName ++ " " ++ (unwords $ map show args) ++ " = ... "
+showSExpr (Func _) =  "<<Generic Function>>" --s ++ " " ++  
+							--intercalate " " (map showSExpr args) 
 showSExpr (Error s) = "Error: " ++ s
---showSExpr (UserFunc name args body) = "uf: " ++ name ++ " " ++ (unwords args)
+showSExpr (UserFunc _ _) = "<<User Defined Function>>"
+showSExpr (ExecFunc funcName args) = "<<Function to be executed: " ++ funcName ++ ", probable error>>"
 
 instance Show SExpr where
 	show = showSExpr

@@ -67,7 +67,7 @@ parseSequence = do
 	char '}'
 	return $ Sequence x
 
-parseUserFunc = do -- UserFunc String [String] SExpr
+parseUserFunc = do 
 		string "func"
 		char ' '
 		funcName <- many letter
@@ -75,18 +75,24 @@ parseUserFunc = do -- UserFunc String [String] SExpr
 		args <- getArgs
 		string "= "
 		func <- parseExpr
-		return $ BindFunc funcName args (Atom "b")   
+		return $ BindFunc funcName (removeEmptyStrings args) func  
 	 
-getArgs :: Parser [SExpr]
+removeEmptyStrings :: [String] -> [String]
+removeEmptyStrings [] = []
+removeEmptyStrings (x:xs)
+	| (x==" ") || (x=="") = removeEmptyStrings xs
+	| otherwise	= x:(removeEmptyStrings xs)
+
+getArgs :: Parser [String]
 getArgs = do
 	sepBy getArg (skipMany1 (oneOf " "))
 
-getArg :: Parser SExpr
+getArg :: Parser [Char]
 getArg = do
 	--x <- letter
 	xs <- many (letter)
 	--(char ' ') <|> (return ' ')
-	return $ Atom xs
+	return xs
 
 parseExpr = do
 	parseAtom
