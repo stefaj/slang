@@ -8,6 +8,7 @@ import Data.STRef
 import Control.Monad
 import Data.Maybe
 import Data.IORef
+import Parser
 
 basicFunctions = [
 				("+",numericBinOp (+)),
@@ -79,6 +80,31 @@ unpackStr _ = ""
 
 
 
+readOrThrow parser = parse parser "sl"
+readExp3 = readOrThrow parseExpr
+readExpList = readOrThrow parseMain
+load :: String -> IO [SExpr]
+load filename = do
+ 		fileContents <- readFile filename 
+		let v = (readExpList fileContents)
+		case v of
+			Left _ -> return []
+			Right sxprs -> return sxprs
+
+readAll :: String -> IO SExpr
+readAll filename = do
+			sxprs <- load filename
+			return $ Sequence sxprs
+
+sequenceAll :: Env -> IO [SExpr] -> IO SExpr
+sequenceAll env sqs = do
+	sequences <- sqs
+	evaled <- mapM (eval env) sequences
+	return $ last evaled
+
+sequenceAll' env filename = sequenceAll env (load filename)
+
+
 -- Evaluation
 
 eval :: Env -> SExpr -> IO SExpr
@@ -86,6 +112,7 @@ eval env v@(Number _) = return v
 eval env v@(String _) = return v
 eval env v@(Bool _) = return v
 eval env (List [s]) = eval env s
+eval env (ExecFunc "import" [String filename]) =  (sequenceAll' env filename) >>= eval env --(readAll filename) >>= (eval env)  
 eval env (ExecFunc "let" [(Atom funcName), expr]) = defineVar funcName expr env
 eval env v@(BindFunc funcName args expr) = do
 			let ufunc = UserFunc args expr
