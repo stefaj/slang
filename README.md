@@ -1,128 +1,201 @@
 # slang
-Stefan Language
 
+## Description
+Slang is a strictly evaluated, dynamically typed interpreted language. Each expression evaluates to a value. The language features referencial transparency through immutable variables. 
 
 ## Syntax
 
 ### Variable declaration
-Variables are declared by the form
+Variables are declared by the form:
+
 ```let varName = expr```
+
 where varName is the name of the variable and expr is a expression.
-For example
-```let varName = {if 10>2 then 5 else 4}```
+For example:
+
+```
+let varName = {if 10>2 then 5 else 4}
+```
 
 ### Function declaration
-Functions are declared in the form of
-```let funcName arg1 arg2 ... argN = expr```
+Functions are declared in the form of:
+
+```
+let funcName arg1 arg2 ... argN = expr
+```
+
 where funcName is the name of the function and arg1 to argN is the name of the arguments. 
-For example
-```let << a b = if a<b then a else b```
-```SL > 1 << 2
+For example:
+
+```
+let << a b = if a<b then a else b
+```
+
+
+```
+SL > 1 << 2
 1.0
 SL > 10 << 5
-5.0```
+5.0
+```
 
 ### Sequences
 A sequence is a list of expressions. The sequence takes on the value of the last expression. Each expression is put on a new line or can be seperated by a ';'
 Sequences take the form of:
+
 ```
 {
     let a = 10
     a + 5
-}```
+}
+```
+
 which would return the value `15.0`
 
 ### Lists
 A list is a collection of heterogeneous expressions. Items are separated by either ';', ',' or a space (' ')
 A list takes the following form:
-```[1 2 3 4]
+
+```
+[1 2 3 4]
 [1,2,3,4]
-[1; 2; 3]```
+[1; 2; 3]
+```
+
 When given as an argument to a function they are unpacked to arguments.  `+ ([1,2,3])` is equivalent to `+ (1 2 3)`
 
 ### If
 An if statement takes the form of:
-```if condition then consequence else alternative```
+
+```
+if condition then consequence else alternative
+```
+
 where condition is an expression that should evaluate to a boolean value (true, false). If the condition evaluates to true then consequence is evaluated, otherwise alternative is evaluated.
 Either consequence or alternative will be evaluated (lazy).
 
 ### While
-```Loops
+
+```
+Loops
 while prevLoop < 10 do
 {
-    `let inc = + prevLoop 1
-    ... -- some action
+    let inc = + (prevLoop 1)
     
 }
-where prevLoop = 10```
+where prevLoop = 10
+```
 
 
 ## Basic Functions
 
 ### Infix
-Functions consisting of symbols can be used infix, for example
-``` 1 + 2
+Functions consisting of symbols can be used infix, for example:
+
+```
+1 + 2
 1 == 2
 ```
+
 But can also be used prefix
-```/ (10 5)```
+
+```
+/ (10 5)
+```
 
 Note that when used infix the function is binary as only two parameters can be given. 
 
 ### +
-Regular addition. Takes multiple arguments
-``` 1 + 1 = 2
-+ (1 2 3 4) = 10```
+Regular addition. Takes multiple arguments.
 
-### -
-Regular subtraction. Takes multiple arguments
+```
+1 + 1 = 2
++ (1 2 3 4) = 10
+```
 
-### *
-Regular multiplication. Takes multiple arguments
+### Arithmetic 
+##### -
+Regular subtraction. Takes multiple arguments.
 
-### / 
-Regular division. Takes multiple arguments
+##### *
+Regular multiplication. Takes multiple arguments.
 
-### <
+##### / 
+Regular division. Takes multiple arguments.
+
+##### <
 Binary less than. Produces a bool value; either true or false. Currently only accepts numbers. Strings might be later considered.
 
-### >
+##### >
 Binary greater than.
 
-### ===
+##### ===
 Tests for equality
 
 ### ToNum
-```ToNum (val)```
+
+```
+ToNum (val)
+```
+
 Tries to convert `val` to a number
 
 ### ShowVal
-```ShowVal (val)```
+
+```
+ShowVal (val)
+```
+
 Converts `val` to a string representation
 
 ### ReadToEnd
-```ReadToEnd (filename)```
+
+```
+ReadToEnd (filename)
+```
+
 `filename` is a string
+
 Reads all contents from file `filename` and stores its contents as a string
 
 ### OpenFileR
-```OpenFileR(filename)```
+
+```
+OpenFileR(filename)
+```
+
 `filename` is a string
+
 Returns a handle to read from file
 
 ### OpenFileW
-```OpenFileW(filename)```
+
+```
+OpenFileW(filename)
+```
+
 `filename` is a string
+
 Returns a handle to write to file
 
 ### WriteLine
-```WriteLine(handle, line)```
+
+```
+WriteLine(handle, line)
+```
+
 `handle` is a handle. `line` is a string
+
 Writes a single line to the handle
 
 ### ReadLine
-```ReadLine(handle)```
+
+```
+ReadLine(handle)
+```
+
 `handle` is a handle.
+
 Reads a single line from the handle
 
 ## General IO
