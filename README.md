@@ -138,6 +138,13 @@ Binary greater than.
 ##### ===
 Tests for equality
 
+For example: 
+
+```
+SL > "test" == "test"
+true
+```
+
 ### ToNum
 
 ```
@@ -146,6 +153,13 @@ ToNum (val)
 
 Tries to convert `val` to a number
 
+For example:
+
+```
+SL > ToNum ("1.65")
+1.65
+```
+
 ### ShowVal
 
 ```
@@ -153,6 +167,13 @@ ShowVal (val)
 ```
 
 Converts `val` to a string representation
+
+For example:
+
+```
+SL > ShowVal (["the, hamster"])
+""the, hamster""
+```
 
 ### ReadToEnd
 
@@ -163,6 +184,18 @@ ReadToEnd (filename)
 `filename` is a string
 
 Reads all contents from file `filename` and stores its contents as a string
+
+For example:
+
+```
+SL > ReadToEnd ("test.s")
+"let b =  {
+            if 10==10
+                then 10
+                else 20
+        }"
+SL >
+```
 
 ### OpenFileR
 
