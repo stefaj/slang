@@ -111,6 +111,9 @@ But can also be used prefix
 
 Note that when used infix the function is binary as only two parameters can be given. 
 
+
+
+### Arithmetic 
 ### +
 Regular addition. Takes multiple arguments.
 
@@ -119,15 +122,16 @@ Regular addition. Takes multiple arguments.
 + (1 2 3 4) = 10
 ```
 
-### Arithmetic 
-##### -
-Regular subtraction. Takes multiple arguments.
+In addition (no pun intended), the following arithmetical functions exist:
 
-##### *
-Regular multiplication. Takes multiple arguments.
+* -
+* /
+* *
 
-##### / 
-Regular division. Takes multiple arguments.
+Arithmetical operators can take any number of parameters.
+
+
+
 
 ##### <
 Binary less than. Produces a bool value; either true or false. Currently only accepts numbers. Strings might be later considered.
