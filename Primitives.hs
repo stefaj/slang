@@ -108,6 +108,10 @@ strInter (a:args) = String $ (intercalate $ unpackStr a) $ (map unpackStr args)
 strApp :: SFunction
 strApp args = String $ foldr1 (++) $ (map unpackStr args)
 
+
+
+
+
 numericBinOp :: (NumericType -> NumericType -> NumericType) -> [SExpr] -> SExpr 
 numericBinOp op [List xs] = numericBinOp op xs
 numericBinOp op args = Number $ foldr1 op $ map unpackNum args
