@@ -1,7 +1,8 @@
 # slang
 
 ## Description
-Slang is a strictly evaluated, dynamically typed interpreted language. Each expression evaluates to a value. The language features referencial transparency through immutable variables. 
+Slang is a simple interpreted language mostly created as a learning experience.
+Slang is a strictly evaluated, dynamically typed language. Each expression evaluates to a value. The language features referencial transparency through immutable variables. 
 
 ## Syntax
 
@@ -31,13 +32,18 @@ For example:
 let << a b = if a<b then a else b
 ```
 
-
 ```
 SL > 1 << 2
 1.0
 SL > 10 << 5
 5.0
 ```
+
+When a function is called prefix the arguments must be surrounded in parentheses:
+```
+<< (1 2)
+```
+
 
 ### Sequences
 A sequence is a list of expressions. The sequence takes on the value of the last expression. Each expression is put on a new line or can be seperated by a ';'
