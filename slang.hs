@@ -13,6 +13,7 @@ readExpr2 expr input = let o = parse expr "sl" input
 						Right val -> show $ val
 
 
+
 readExpr' :: (Parser SExpr) -> String -> SExpr
 readExpr' expr input = let o = parse expr "sl" input
 					in case o of
@@ -22,6 +23,10 @@ readExpr' expr input = let o = parse expr "sl" input
 readExpr = readExpr' parseExpr
 
 
+isValidExpr expr input = let o = parse expr "sl" input
+					in case o of
+						Left err -> False
+						Right val -> True
 
 
 
@@ -77,3 +82,20 @@ main = do
 	case length args of 
 		0 -> runRepl
 		otherwise -> readFile (args !! 0) >>= runOnce
+
+
+
+
+
+
+-- tests
+-- parsing
+test 1 = isValidExpr parseExpr "{1}"
+--test 2 = isValidExpr parseExpr "{let `a 10}"
+test 2 = isValidExpr parseExpr "{+ 1 1}"
+test 3 = isValidExpr parseExpr "+ 1 1"
+test 4 = isValidExpr parseExpr "func fib a b = 1"
+test 5 = isValidExpr parseExpr "let a = 10"
+test 6 = isValidExpr parseExpr "let fib a b = + `a `b"
+
+testAll = and $ map test [1..6]

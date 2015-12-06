@@ -1,0 +1,68 @@
+1 + 1 = 2
+2 + 2 = 4
+
+
+for i in [1..10] let {+ i 2}
+
+-- map (\x -> x*2) [1..10]
+while (j < 10) for i in [1..10] then j = 3*i			- [j | i <- [1..10], let j = 3*i, j < 10]
+
+
+
+
+
+
+
+
+
+
+The return value of a function should be the last value
+
+:: pure
+func fun a { 
+		let name = "John";
+		let surname = "Travolta"
+        let fullName {app name surname}	
+	}	
+
+::worldly
+
+let should create variable and return result
+
+Loops
+while prevLoop < 10 do
+{
+    `let inc = + prevLoop 1
+    ... -- some action
+    
+}
+where prevLoop = 10
+
+-- set an initial value for prevLoop. prevLoop will contain the value of the last executed statement in the sequence for the next iteration
+
+
+if condition then action else action
+
+
+if {== 1 1} then {1} else {1}
+
+
+
+
+TODO list
+fix sequence, prevent it from including empties
+{
+    let a = 10
+}
+gives incorrect answer
+
+
+
+
+
+
+
+
+
+
+

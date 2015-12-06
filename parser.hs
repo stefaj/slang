@@ -1,17 +1,22 @@
-module Parser(parseExpr, parseMain, parseSequenceNoBrackets) where
+module Parser(parseExpr, parseMain, parseSequenceNoBrackets, parseIf, parseInfixFunc) where
 
 import Text.ParserCombinators.Parsec hiding (spaces)
+import qualified Text.ParserCombinators.Parsec as P(spaces)
 import Types
 
 spaces :: Parser ()
 spaces = skipMany1 (oneOf " ,")
 
-symbol = oneOf "!@#$%^&*-+=/"
+symbol = oneOf "!@#$%^&*-+/<>="
+uSymbols = oneOf "!@#$%^&*-+/<>"
+
 
 functionSeparators = skipMany1 (oneOf " ")
 listSeparators = skipMany1 (oneOf " ,;")
 sequenceSeparators = skipMany1 (oneOf "\n; ")
-sequenceSkips = skipMany (oneOf "\n ")
+--sequenceSkips = skipMany (oneOf "\n ")
+
+whiteskips = skipMany (oneOf " \n\t")
 -- separator = string ", "
 
 parseNumber :: Parser SExpr
@@ -34,21 +39,61 @@ parseString = do
 	char '"'
 	return $ String x
 
-parseFunc :: Parser SExpr
-parseFunc = do
-	-- first <- char '`'
-	funcName <- many (letter <|> symbol)
-	char ' '
-	args <- sepBy parseExpr functionSeparators
-	return $ ExecFunc funcName args
+
+
+parseInfixFunc :: Parser SExpr
+parseInfixFunc = do
+	arg1 <- parseExpr'
+	char ' ' <|> (return ' ')
+	funcName <- many1 symbol
+	char ' ' <|> (return ' ')
+	arg2 <- parseExpr'
+	return $ ExecFunc funcName [arg1, arg2]
 
 parseAtom :: Parser SExpr
 parseAtom = do
-	first <- char '`'
+	funcName <- many letter
+	case funcName of
+		"true" -> return $ Boolean True
+		"false" -> return $ Boolean False
+		otherwise -> return $ if (length funcName) > 0
+			then Atom funcName
+			else Error ""
+
+parseFunc :: Parser SExpr
+parseFunc = do
+
+
+	funcName <- many (letter <|> symbol)
+	char ' '
+	char '('
+	args <- sepBy1 parseExpr functionSeparators -- Previously was sepBy
+	char ')'
+	-- c <- char ' ' <|> (return 'a')
+	return $ ExecFunc funcName args
+	
+
+--	if (c == 'a') 
+--		then return $ Atom funcName
+--		else
+--			do
+--				args <- sepBy1 parseExpr functionSeparators -- Previously was sepBy
+--				return $ ExecFunc funcName args
+
+
+
+
+parseAtom' :: Parser SExpr
+parseAtom' = do
+	--char '`'
 	first <- letter
 	rest <- many (letter)
 	let atom = first:rest
-	return $ Atom atom
+	case atom of
+		"true" -> return $ Boolean True
+		"false" -> return $ Boolean False
+		"let" -> fail "wrong turn"
+		otherwise -> return $ Atom atom
 
 parseList :: Parser SExpr
 parseList = do
@@ -57,39 +102,79 @@ parseList = do
 	char ']'
 	return $ List x
 
+parseIf :: Parser SExpr
+parseIf = do
+	string "if"
+	cond <- parseExpr
+	whiteskips
+	--char ' ' <|> (return ' ')
+	string "then"
+	-- char ' ' <|> (return ' ')
+	conseq <- parseExpr
+	--char ' ' <|> (return ' ')
+	whiteskips
+	string "else"
+	-- char ' ' <|> (return ' ')
+	alter <- parseExpr
+	return $ If cond conseq alter
 
 parseSequence :: Parser SExpr
 parseSequence = do
 	char '{'
+	whiteskips
 	seqi <- parseSequenceNoBrackets
+	whiteskips
 	char '}'
 	return seqi
 
 parseSequenceNoBrackets :: Parser SExpr -- Mainly used by runeOnce to parse a main file
 parseSequenceNoBrackets = do
 	--sequenceSkips <|> (return ())
-	x <- sepBy parseExpr sequenceSeparators
+	x <- endBy parseExpr sequenceSeparators
 	--sequenceSkips <|> (return ())
 	return $ Sequence x
 
 parseMain :: Parser [SExpr] -- Mainly used by runeOnce to parse a main file
 parseMain = do
-	sequenceSkips <|> (return ())
-	x <- endBy parseExpr sequenceSeparators
-	sequenceSkips <|> (return ())
-	return x
+	whiteskips
+	--sequenceSkips <|> (return ())
+	x <- (try $ endBy parseExpr sequenceSeparators) <|> (return [])
+	y <- parseExpr <|> (return Empty)
+	let res = x ++ (filter (\x -> x /= Empty) [y])
+	--sequenceSkips <|> (return ())
+	whiteskips
+	return res
+
+parseComment :: Parser ()
+parseComment = do
+	string "--"
+	many (noneOf "\n")
+	return ()
 
 
-
+parseUserFunc :: Parser SExpr
 parseUserFunc = do 
-		string "func"
+		string "let"
 		char ' '
-		funcName <- many letter
+		funcName <- many (letter <|> uSymbols)
 		char ' '
 		args <- getArgs'
-		string "= "
+		string "="
+		char ' ' <|> (return ' ')
 		func <- parseExpr
-		return $ BindFunc funcName (removeEmptyStrings args) func  
+		let args' = (removeEmptyStrings args)
+		return $ case (length args') of
+					0 -> BindLet funcName func
+					otherwise -> BindFunc funcName args' func  
+
+--parseLet :: Parser SExpr
+--parseLet = do 
+--		string "let"
+--		char ' '
+--		funcName <- many letter
+--		string " = "		
+--		func <- parseExpr
+--		return $ BindLet funcName func  	
 	 
 removeEmptyStrings :: [String] -> [String]
 removeEmptyStrings [] = []
@@ -109,13 +194,36 @@ getArg = do
 	return xs
 
 parseExpr = do
-	parseAtom
-	<|> parseString
-	<|> parseNumber
-	<|> parseList
-	<|> parseSequence
-	<|> parseUserFunc
-	<|> parseFunc
+	P.spaces
+	--skipMany (oneOf " ")
+	a <- do (	(try parseInfixFunc)
+				<|> parseExpr')
+	--P.spaces
+	return a
+
+parseExpr' = do
+
+	P.spaces
+	--(try parseComment) <|>
+	
+
+	--skipMany (oneOf " ")
+	a <- do (	
+				parseString
+				<|> parseNumber
+				<|> parseList
+				<|> parseSequence
+			--	<|> parseLet
+
+				<|> (try parseUserFunc)		
+				<|> (try parseIf)
+				<|> (try parseFunc)
+				<|> parseAtom'
+							--	<|> (try parseAtom)	
+
+				)
+	--P.spaces
+	return a
 
 	
 

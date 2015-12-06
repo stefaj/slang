@@ -1,4 +1,4 @@
-module Primitives(basicFunctions, eval, basicBindingsEnv, Env, getVar',apply, printEnv) where
+module Primitives(basicFunctions, eval, basicBindingsEnv, Env, getVar',apply, printEnv, load, sequenceAll') where
 
 import Types
 import Data.List
@@ -9,35 +9,81 @@ import Control.Monad
 import Data.Maybe
 import Data.IORef
 import Parser
+import System.IO
 
 basicFunctions = [
+			--	("<", numericBoolBinOp (<)),
 				("+",numericBinOp (+)),
 				("-",numericBinOp (-)),
 				("*",numericBinOp (*)),
 				("/",numericBinOp (/)),
+				("<", numericBoolBinOp (<)),
+				(">", numericBoolBinOp (>)),
 				("++", strApp),
-				("++=", strInter)]
+				("++=", strInter),
+				("==", equals),
+				("ToNum", toNum),
+				("ShowVal", showVal)]
+
+ioFunctions = [("ReadToEnd", readContents),
+				("OpenFileR", makePort ReadMode),
+				("OpenFileW", makePort WriteMode),
+				("WriteLine", writeLineFunc),
+				("ReadLine", readLineFunc)]
 
 
 basicBindingsEnv :: IO Env
-basicBindingsEnv = nullEnv >>= (flip bindVars $ map makePrim basicFunctions)
-	where makePrim (var, func) = (var, Func func)
+basicBindingsEnv = nullEnv >>= (flip bindVars $ (map makePrim basicFunctions ++ (map makeIOPrim ioFunctions)))
+	where 
+		makePrim (var, func) = (var, Func func)
+		makeIOPrim (var, func) = (var, IOFunc func)
 
 
---apply :: String -> [SExpr] -> SExpr
---apply funcName args = 
---	let func = lookup funcName basicFunctions 
---	in case func of
---		(Just f) -> f args
---		otherwise -> Error $ "Function " ++ funcName ++ " not found"
---
+equals :: [SExpr] -> SExpr
+equals args = if (length args == 2)
+	then Boolean $ (args !! 0) == (args !! 1)
+	else Error $ "Only 2 arguments expected; got " ++ (show $ length args) 
 
 
+-- COME IO, TO THE HEAVENS!!
+makePort :: IOMode -> [SExpr] -> IO SExpr
+makePort mode [String filename] = do (openFile filename mode) >>= (return . Handle)
+
+closePort :: [SExpr] -> IO SExpr
+closePort [Handle p] = do
+	hClose p
+	return $ Boolean True
+closePort _ = return $ Boolean False
+
+
+readLineFunc :: [SExpr] -> IO SExpr
+readLineFunc [Handle p] = do
+	line <- hGetLine p
+	return $ String line
+
+writeLineFunc :: [SExpr] -> IO SExpr
+writeLineFunc [Handle p, dat] = do
+	hPrint p dat
+	return $ Boolean True
+
+readContents :: [SExpr] -> IO SExpr
+readContents [String filename] = do
+	contents <- readFile filename
+	return $ String contents
+
+toNum :: [SExpr] -> SExpr
+toNum [String s] = Number (read s)
+toNum [Number n] = Number n
+toNum _ = Error $ "This type cannot be converted"
+
+showVal :: [SExpr] -> SExpr
+showVal [x] = String $ show x
 
 apply :: String -> Env -> [SExpr] -> IO SExpr
 apply funcName env args = do
 	res <- getVar' funcName env
 	case res of 
+		(Just (IOFunc func)) -> func args
 		(Just (Func func)) -> return $ func args
 		(Just (UserFunc argNames func)) -> if (length args /= (length argNames)) 
 			then return $ Error ("Func args do not match; expected" ++ (show (length argNames)) ++ " found" ++ (show (length args)) )
@@ -45,6 +91,7 @@ apply funcName env args = do
 				newE <- bindVars env (zip argNames args)
 				func' <- eval newE func
 				return func'
+		(Just s@(Atom a)) -> return $ s
 		otherwise -> return $ Error ("Func " ++ funcName ++ " not found" )  -- return $ Atom a
 
 
@@ -65,7 +112,13 @@ numericBinOp :: (NumericType -> NumericType -> NumericType) -> [SExpr] -> SExpr
 numericBinOp op [List xs] = numericBinOp op xs
 numericBinOp op args = Number $ foldr1 op $ map unpackNum args
 
-
+--numericBoolBinOp op args = Boolean True
+numericBoolBinOp :: (NumericType -> NumericType -> Bool) -> [SExpr] -> SExpr 
+numericBoolBinOp op [List xs] = numericBoolBinOp op xs
+numericBoolBinOp op args = let nums = map unpackNum args in
+	if (length args == 2)
+		then Boolean $ op (nums !! 0) (nums !! 1)
+		else Error $ "Only 2 arguments expected; got " ++ (show $ length args) 
 
 -- unpacking
 unpackNum :: SExpr -> NumericType
@@ -83,6 +136,7 @@ unpackStr _ = ""
 readOrThrow parser = parse parser "sl"
 readExp3 = readOrThrow parseExpr
 readExpList = readOrThrow parseMain
+
 load :: String -> IO [SExpr]
 load filename = do
  		fileContents <- readFile filename 
@@ -100,7 +154,9 @@ sequenceAll :: Env -> IO [SExpr] -> IO SExpr
 sequenceAll env sqs = do
 	sequences <- sqs
 	evaled <- mapM (eval env) sequences
-	return $ last evaled
+	return $ case (length evaled) of
+		0 -> Empty
+		otherwise -> last evaled
 
 sequenceAll' env filename = sequenceAll env (load filename)
 
@@ -110,32 +166,47 @@ sequenceAll' env filename = sequenceAll env (load filename)
 eval :: Env -> SExpr -> IO SExpr
 eval env v@(Number _) = return v
 eval env v@(String _) = return v
-eval env v@(Bool _) = return v
+eval env v@(Boolean _) = return v
 eval env (List [s]) = eval env s
-eval env (ExecFunc "import" [String filename]) =  (sequenceAll' env filename) >>= eval env --(readAll filename) >>= (eval env)  
-eval env (ExecFunc "let" [(Atom funcName), expr]) = defineVar funcName expr env
+eval env (If cond conseq altern) = do
+	cond' <- eval env cond
+	case cond' of
+		(Boolean True) -> eval env conseq
+		otherwise -> eval env altern
+
+--eval env (ExecFunc "let" [(Atom funcName), expr]) = defineVar funcName expr env
+eval env (BindLet funcName expr) = do 
+	localEnv <- copyEnv env
+	evaled <- eval localEnv expr
+	defineVar funcName evaled env
 eval env v@(BindFunc funcName args expr) = do
 			let ufunc = UserFunc args expr
 			defineVar funcName ufunc env
 			return v 
+
+eval env (ExecFunc "import" [String filename]) = (sequenceAll' env filename) >>= eval env 
 eval env (ExecFunc s args) = do
 			localEnv <- copyEnv env
 			evaled_args <- mapM (eval localEnv) args
 			func <- apply s localEnv evaled_args
 			return func
 			--eval localEnv func
-
+eval env (List []) = return Empty
 eval env (List xs) = do
 			res <- mapM (eval env) xs
 			return $ List res
 eval env (Atom "state") = do
 	p <- printEnv env
 	return $ String p 
+eval env (Atom "stdin") = return $ Handle stdin
+eval env (Atom "stdout") = return $ Handle stdout
 eval env (Atom a) = do
 					res <- getVar' a env
 					case res of 
 						(Just v) -> return v
 						Nothing -> return $ Error ("Var " ++ show a ++ " not found" )  -- return $ Atom a
+
+eval env (Sequence []) = return Empty
 eval env (Sequence xs) = do --first we need to make a local environment\
 			localEnv <- copyEnv env
 			res <- mapM (eval localEnv) xs
