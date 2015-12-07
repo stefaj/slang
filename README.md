@@ -1,12 +1,12 @@
 # slang
 
-## Description
+# Description
 Slang is a simple interpreted language mostly created as a learning experience.
 Slang is a strictly evaluated, dynamically typed language. Each expression evaluates to a value. The language features referencial transparency through immutable variables. 
 
-## Syntax
+# Syntax
 
-### Variable declaration
+## Variable declaration
 Variables are declared by the form:
 
 ```let varName = expr```
@@ -18,7 +18,7 @@ For example:
 let varName = {if 10>2 then 5 else 4}
 ```
 
-### Function declaration
+## Function declaration
 Functions are declared in the form of:
 
 ```
@@ -45,7 +45,7 @@ When a function is called prefix the arguments must be surrounded in parentheses
 ```
 
 
-### Sequences
+## Sequences
 A sequence is a list of expressions. The sequence takes on the value of the last expression. Each expression is put on a new line or can be seperated by a ';'
 Sequences take the form of:
 
@@ -58,7 +58,7 @@ Sequences take the form of:
 
 which would return the value `15.0`
 
-### Lists
+## Lists
 A list is a collection of heterogeneous expressions. Items are separated by either ';', ',' or a space (' ')
 A list takes the following form:
 
@@ -70,7 +70,7 @@ A list takes the following form:
 
 When given as an argument to a function they are unpacked to arguments.  `+ ([1,2,3])` is equivalent to `+ (1 2 3)`
 
-### If
+## If
 An if statement takes the form of:
 
 ```
@@ -80,7 +80,7 @@ if condition then consequence else alternative
 where condition is an expression that should evaluate to a boolean value (true, false). If the condition evaluates to true then consequence is evaluated, otherwise alternative is evaluated.
 Either consequence or alternative will be evaluated (lazy).
 
-### While
+## While
 A loop takes the form of 
 
 ```
@@ -98,9 +98,9 @@ SL > let a = while x < 10 do { x + 1 } where x = 0
 ```
 
 
-## Basic Functions
+# Basic Functions
 
-### Infix
+## Infix
 Functions consisting of symbols can be used infix, for example:
 
 ```
@@ -118,8 +118,8 @@ Note that when used infix the function is binary as only two parameters can be g
 
 
 
-### Arithmetic 
-### +
+## Arithmetic 
+## +
 Regular addition. Takes multiple arguments.
 
 ```
@@ -138,13 +138,13 @@ Arithmetical operators can take any number of parameters.
 
 
 
-##### <
+### <
 Binary less than. Produces a bool value; either true or false. Currently only accepts numbers. Strings might be later considered.
 
-##### >
+### >
 Binary greater than.
 
-##### ===
+### ===
 Tests for equality
 
 For example: 
@@ -154,7 +154,7 @@ SL > "test" == "test"
 true
 ```
 
-### ToNum
+## ToNum
 
 ```
 ToNum (val)
@@ -169,7 +169,7 @@ SL > ToNum ("1.65")
 1.65
 ```
 
-### ShowVal
+## ShowVal
 
 ```
 ShowVal (val)
@@ -184,7 +184,7 @@ SL > ShowVal (["the, hamster"])
 ""the, hamster""
 ```
 
-### ReadToEnd
+## ReadToEnd
 
 ```
 ReadToEnd (filename)
@@ -206,7 +206,7 @@ SL > ReadToEnd ("test.s")
 SL >
 ```
 
-### OpenFileR
+## OpenFileR
 
 ```
 OpenFileR(filename)
@@ -216,7 +216,7 @@ OpenFileR(filename)
 
 Returns a handle to read from file
 
-### OpenFileW
+## OpenFileW
 
 ```
 OpenFileW(filename)
@@ -226,7 +226,7 @@ OpenFileW(filename)
 
 Returns a handle to write to file
 
-### WriteLine
+## WriteLine
 
 ```
 WriteLine(handle, line)
@@ -236,7 +236,7 @@ WriteLine(handle, line)
 
 Writes a single line to the handle
 
-### ReadLine
+## ReadLine
 
 ```
 ReadLine(handle)
@@ -246,7 +246,7 @@ ReadLine(handle)
 
 Reads a single line from the handle
 
-## General IO
+# General IO
 The standard input buffer handle is given by `stdin` and the standard output buffer handle by `stdout`
 
 
