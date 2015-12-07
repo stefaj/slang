@@ -19,8 +19,14 @@ basicFunctions = [
 				("/",numericBinOp (/)),
 				("<", numericBoolBinOp (<)),
 				(">", numericBoolBinOp (>)),
-				("++", strApp),
-				("++=", strInter),
+				("++", concatList),
+				("++=", intercalateList),
+				("@", getAtOp),
+				("head", headOp),
+				("tail", tailOp),
+				("drop", dropOp),
+				("take", takeOp),
+				(":", consOp),
 				("==", equals),
 				("ToNum", toNum),
 				("ShowVal", showVal)]
@@ -102,14 +108,6 @@ sPlus :: SFunction
 sPlus args = numericBinOp (+) args 
 sMin args = numericBinOp (+) args 
 
-strInter :: SFunction
-strInter (a:args) = String $ (intercalate $ unpackStr a) $ (map unpackStr args) 
-
-strApp :: SFunction
-strApp args = String $ foldr1 (++) $ (map unpackStr args)
-
-
-
 
 
 numericBinOp :: (NumericType -> NumericType -> NumericType) -> [SExpr] -> SExpr 
@@ -135,6 +133,9 @@ unpackStr (String n) = n
 unpackStr (List [n]) = unpackStr n
 unpackStr _ = ""
 
+unpackList :: SExpr -> [SExpr]
+unpackList (List xs) = xs
+unpackList _ = []
 
 
 readOrThrow parser = parse parser "sl"
@@ -165,6 +166,63 @@ sequenceAll env sqs = do
 sequenceAll' env filename = sequenceAll env (load filename)
 
 
+-- List operations ------------------------------------------------------------------------------
+
+consOp :: [SExpr] -> SExpr
+consOp [x, List xs] = List (x:xs)
+consOp _  = Error $ "Required arguments is expression and a list"
+
+
+getAtOp :: [SExpr] -> SExpr
+getAtOp [String xs, Number n] = String $ (xs !! (truncate n)):""
+getAtOp [List xs, Number n] = xs !! (truncate n)
+getAtOp _ = Error "Require a list"
+
+headOp :: [SExpr] -> SExpr
+headOp [List xs] = head xs
+headOp [String xs] = String $ (head xs):""
+headOp _ = Error "Require a list"
+
+tailOp :: [SExpr] -> SExpr
+tailOp [List xs] = List (tail xs)
+tailOp [String xs] = String (tail xs)
+tailOp _ = Error "Require a list"
+
+dropOp :: [SExpr] -> SExpr
+dropOp [Number n, String xs] = String $ (drop (truncate n) xs)
+dropOp [Number n, List xs] = List $ (drop (truncate n) xs)
+dropOp _ = Error "Require a list"
+
+takeOp :: [SExpr] -> SExpr
+takeOp [Number n, String xs] = String $ (take (truncate n) xs)
+takeOp [Number n, List xs] = List $ (take (truncate n) xs)
+takeOp _ = Error "Require a list"
+
+
+concatList :: [SExpr] -> SExpr
+concatList xs = foldr1 aux xs 
+	where
+		aux :: SExpr -> SExpr -> SExpr
+		aux (String xs) (String ys) = String (xs ++ ys)
+		aux (List xs) (List ys) = List (xs ++ ys)
+		aux _ _ = List []
+
+intercalateList :: [SExpr] -> SExpr
+intercalateList [List xs, List xss] = List $ (intercalate xs $ map unpackList xss) 
+intercalateList [String s, List xs] = String $ intercalate s $ map unpackStr xs
+intercalateList _ = Error "Invalid arguments"
+
+-- assume initial is evaled
+loopHelper :: Env -> String -> SExpr -> SExpr -> IO SExpr
+loopHelper env varName condition body = do
+	body' <- eval env body
+	setVar env varName body'
+	cond' <- eval env condition
+	case cond' of
+		(Boolean True) -> do
+			loopHelper env varName condition body
+		otherwise -> return body'
+
 -- Evaluation
 
 eval :: Env -> SExpr -> IO SExpr
@@ -177,6 +235,12 @@ eval env (If cond conseq altern) = do
 	case cond' of
 		(Boolean True) -> eval env conseq
 		otherwise -> eval env altern
+-- WhileDo String SExpr SExpr SExpr -- VarName, InitialValue, Condition, Body
+eval env (WhileDo varName initial condition body) = do
+	localEnv <- copyEnv env
+	evaledInitial <- eval localEnv initial
+	defineVar varName evaledInitial localEnv
+	loopHelper localEnv varName condition body
 
 --eval env (ExecFunc "let" [(Atom funcName), expr]) = defineVar funcName expr env
 eval env (BindLet funcName expr) = do 
@@ -250,6 +314,14 @@ defineVar var value stateRef = do
 	state <- readIORef stateRef
 	writeIORef stateRef $ (var,valueRef) : state
 	return value
+
+
+setVar :: Env -> String -> SExpr -> IO SExpr
+setVar envRef var value = do 
+			env <- readIORef envRef
+			let varRef = fromJust $ lookup var env
+			writeIORef varRef value
+			return value
 
 
 bindVars :: Env -> [(String, SExpr)] -> IO Env

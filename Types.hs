@@ -15,7 +15,8 @@ data SExpr = Atom String
 		| ExecFunc String [SExpr]
 		| BindFunc String [String] SExpr
 		| BindLet String SExpr
-		| If SExpr SExpr SExpr
+		| WhileDo String SExpr SExpr SExpr -- VarName, InitialValue, Condition, Body
+		| If SExpr SExpr SExpr -- Condition, Consequence, Alternative
 		| IOFunc ([SExpr] -> IO SExpr)
 		| Func ([SExpr] -> SExpr)
 		| UserFunc [String] SExpr -- function arguments and body
@@ -47,6 +48,7 @@ showSExpr (UserFunc args body) = "<<UFUNC " ++ (show args) ++ " " ++ (show body)
 showSExpr (ExecFunc funcName args) = "<<EXEC FUNC " ++ (show funcName) ++ " " ++ (show args)++">>"  --"<<Function to be executed: " ++ funcName ++ ", probable error>>"
 showSExpr (IOFunc _) = "<<Generic IO Function>>"
 showSExpr (If cond _ _) = "If (" ++ (show cond) ++ ") ..."
+showSExpr (WhileDo varName initial condition body) = "while " ++ (show condition) ++ " do \n \t{ ... }\n where " ++ varName ++ " = " ++ (show initial)   
 showSExpr (Handle h) = "<<Handle " ++ (show h) ++ ">>"
 showSExpr (BindLet _ _) = "<<Unevaled Let binding>>"
 showSExpr (Error "") = ""

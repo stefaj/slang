@@ -91,7 +91,6 @@ main = do
 -- tests
 -- parsing
 test 1 = isValidExpr parseExpr "{1}"
---test 2 = isValidExpr parseExpr "{let `a 10}"
 test 2 = isValidExpr parseExpr "{+ 1 1}"
 test 3 = isValidExpr parseExpr "+ 1 1"
 test 4 = isValidExpr parseExpr "func fib a b = 1"

@@ -1,4 +1,4 @@
-module Parser(parseExpr, parseMain, parseSequenceNoBrackets, parseIf, parseInfixFunc) where
+module Parser(parseExpr, parseMain, parseSequenceNoBrackets, parseWhile, parseInfixFunc) where
 
 import Text.ParserCombinators.Parsec hiding (spaces)
 import qualified Text.ParserCombinators.Parsec as P(spaces)
@@ -7,7 +7,7 @@ import Types
 spaces :: Parser ()
 spaces = skipMany1 (oneOf " ,")
 
-symbol = oneOf "!@#$%^&*-+/<>="
+symbol = oneOf "!@#$%^&*-+/<>=:"
 uSymbols = oneOf "!@#$%^&*-+/<>"
 
 
@@ -107,16 +107,30 @@ parseIf = do
 	string "if"
 	cond <- parseExpr
 	whiteskips
-	--char ' ' <|> (return ' ')
 	string "then"
-	-- char ' ' <|> (return ' ')
 	conseq <- parseExpr
-	--char ' ' <|> (return ' ')
 	whiteskips
 	string "else"
-	-- char ' ' <|> (return ' ')
 	alter <- parseExpr
 	return $ If cond conseq alter
+
+
+parseWhile :: Parser SExpr
+parseWhile = do
+	string "while"
+	cond <- parseExpr
+	whiteskips
+	string "do"
+	body <- parseExpr
+	whiteskips
+	string "where"
+	whiteskips
+	varName <- many letter
+	whiteskips
+	char '='
+	whiteskips
+	initial <- parseExpr
+	return $ WhileDo  varName initial cond  body
 
 parseSequence :: Parser SExpr
 parseSequence = do
@@ -217,6 +231,7 @@ parseExpr' = do
 
 				<|> (try parseUserFunc)		
 				<|> (try parseIf)
+				<|> (try parseWhile)
 				<|> (try parseFunc)
 				<|> parseAtom'
 							--	<|> (try parseAtom)	
