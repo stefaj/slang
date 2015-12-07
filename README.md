@@ -81,15 +81,20 @@ where condition is an expression that should evaluate to a boolean value (true, 
 Either consequence or alternative will be evaluated (lazy).
 
 ### While
+A loop takes the form of 
+
+```
+while condition do expr where varName = expr
+```
+
+The variable `varName` is assigned initially to `expr`. `expr` is executed on each iteration while `condition` evaluates to a Boolean true. After each iteration `varName` takes the value of `expr`.
+
+For example:
 
 ```
 Loops
-while prevLoop < 10 do
-{
-    let inc = + (prevLoop 1)
-    
-}
-where prevLoop = 10
+SL > let a = while x < 10 do { x + 1 } where x = 0
+10.0
 ```
 
 
