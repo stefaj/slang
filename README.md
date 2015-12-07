@@ -145,8 +145,8 @@ SL > 1 : [3,4]
 ```
 
 If only a few elements of a list are needed:
-* `take (n, xs)` takes the first `n` elements of `xs`
-* `drop (n, xs)` removes the first `n` elements of `xs`
+* `take (n xs)` takes the first `n` elements of `xs`
+* `drop (n xs)` removes the first `n` elements of `xs`
 
 A certain element of a list can be obtained using the `@` function
 which takes the form
