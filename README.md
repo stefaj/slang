@@ -18,7 +18,7 @@ For example:
 let varName = {if 10>2 then 5 else 4}
 ```
 
-### Function declaration
+### Functions
 Functions are declared in the form of:
 
 ```
@@ -43,6 +43,23 @@ When a function is called prefix the arguments must be surrounded in parentheses
 ```
 << (1 2)
 ```
+
+#### Infix
+Functions consisting of symbols can be used infix, for example:
+
+```
+1 + 2
+1 == 2
+```
+
+But can also be used prefix
+
+```
+/ (10 5)
+```
+
+Note that when used infix the function is binary as only two parameters can be given. 
+
 
 
 ### Sequences
@@ -81,40 +98,69 @@ where condition is an expression that should evaluate to a boolean value (true, 
 Either consequence or alternative will be evaluated (lazy).
 
 ### While
+A loop takes the form of 
+
+```
+while condition do expr where varName = expr
+```
+
+The variable `varName` is assigned initially to `expr`. `expr` is executed on each iteration while `condition` evaluates to a Boolean true. After each iteration `varName` takes the value of `expr`.
+
+For example:
 
 ```
 Loops
-while prevLoop < 10 do
-{
-    let inc = + (prevLoop 1)
-    
-}
-where prevLoop = 10
+SL > let a = while x < 10 do { x + 1 } where x = 0
+10.0
 ```
 
 
 ## Basic Functions
 
-### Infix
-Functions consisting of symbols can be used infix, for example:
+### Lists
+There are various operators that work on lists
 
+Two lists can be appended by `++`
+For example:
 ```
-1 + 2
-1 == 2
-```
-
-But can also be used prefix
-
-```
-/ (10 5)
+SL > ++ (["hey" "there" "mufasa"])
+["hey", "there", "mufasa"]
 ```
 
-Note that when used infix the function is binary as only two parameters can be given. 
+Multiple lists can be intercalated by an list:
+```
+SL > " " ++= ["hey" "there"]
+"hey there"
+SL > ", " ++= ["hey" "there"]
+"hey, there"
 
+SL > ++= ([0,1] [[1,2],[3,4],[5,6]])
+[1.0, 2.0, 0.0, 1.0, 3.0, 4.0, 0.0, 1.0, 5.0, 6.0]
+```
 
+An item can be inserted to the beginning of a list by the cons operator (`:`)
+```
+SL > 1 : [3,4]
+[1.0, 3.0, 4.0]
+```
+
+If only a few elements of a list are needed:
+* `take (n xs)` takes the first `n` elements of `xs`
+* `drop (n xs)` removes the first `n` elements of `xs`
+
+A certain element of a list can be obtained using the `@` function
+which takes the form
+`xs @ n`
+and returns the `n`-th element (zero based indexing) in `xs`
+
+For example:
+
+```
+SL > [1,2,3,4] @ 2
+3.0
+```
 
 ### Arithmetic 
-### +
 Regular addition. Takes multiple arguments.
 
 ```
@@ -131,19 +177,28 @@ In addition (no pun intended), the following arithmetical functions exist:
 Arithmetical operators can take any number of parameters.
 
 
-
-
-##### <
-Binary less than. Produces a bool value; either true or false. Currently only accepts numbers. Strings might be later considered.
-
-##### >
-Binary greater than.
-
-##### ===
-Tests for equality
+### Ordinality
+These are binary operators that take two numbers and produce a boolean value; either true or false
+* <    -- Less than
+* >    -- Greater than
 
 For example: 
 
+```
+SL > 1 < 2
+true
+SL > 3 > 4
+false
+```
+
+
+### Equality
+This function returns whether two objects have the same value
+```
+expr1 == expr2
+```
+
+For example:
 ```
 SL > "test" == "test"
 true
