@@ -18,7 +18,7 @@ For example:
 let varName = {if 10>2 then 5 else 4}
 ```
 
-### Function declaration
+### Functions
 Functions are declared in the form of:
 
 ```
@@ -43,6 +43,23 @@ When a function is called prefix the arguments must be surrounded in parentheses
 ```
 << (1 2)
 ```
+
+#### Infix
+Functions consisting of symbols can be used infix, for example:
+
+```
+1 + 2
+1 == 2
+```
+
+But can also be used prefix
+
+```
+/ (10 5)
+```
+
+Note that when used infix the function is binary as only two parameters can be given. 
+
 
 
 ### Sequences
@@ -99,23 +116,6 @@ SL > let a = while x < 10 do { x + 1 } where x = 0
 
 
 ## Basic Functions
-
-### Infix
-Functions consisting of symbols can be used infix, for example:
-
-```
-1 + 2
-1 == 2
-```
-
-But can also be used prefix
-
-```
-/ (10 5)
-```
-
-Note that when used infix the function is binary as only two parameters can be given. 
-
 
 ### Lists
 There are various operators that work on lists
