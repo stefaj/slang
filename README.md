@@ -1,12 +1,12 @@
 # slang
 
-# Description
+## Description
 Slang is a simple interpreted language mostly created as a learning experience.
 Slang is a strictly evaluated, dynamically typed language. Each expression evaluates to a value. The language features referencial transparency through immutable variables. 
 
-# Syntax
+## Syntax
 
-## Variable declaration
+### Variable declaration
 Variables are declared by the form:
 
 ```let varName = expr```
@@ -18,7 +18,7 @@ For example:
 let varName = {if 10>2 then 5 else 4}
 ```
 
-## Function declaration
+### Function declaration
 Functions are declared in the form of:
 
 ```
@@ -45,7 +45,7 @@ When a function is called prefix the arguments must be surrounded in parentheses
 ```
 
 
-## Sequences
+### Sequences
 A sequence is a list of expressions. The sequence takes on the value of the last expression. Each expression is put on a new line or can be seperated by a ';'
 Sequences take the form of:
 
@@ -58,7 +58,7 @@ Sequences take the form of:
 
 which would return the value `15.0`
 
-## Lists
+### Lists
 A list is a collection of heterogeneous expressions. Items are separated by either ';', ',' or a space (' ')
 A list takes the following form:
 
@@ -70,7 +70,7 @@ A list takes the following form:
 
 When given as an argument to a function they are unpacked to arguments.  `+ ([1,2,3])` is equivalent to `+ (1 2 3)`
 
-## If
+### If
 An if statement takes the form of:
 
 ```
@@ -80,7 +80,7 @@ if condition then consequence else alternative
 where condition is an expression that should evaluate to a boolean value (true, false). If the condition evaluates to true then consequence is evaluated, otherwise alternative is evaluated.
 Either consequence or alternative will be evaluated (lazy).
 
-## While
+### While
 A loop takes the form of 
 
 ```
@@ -98,9 +98,9 @@ SL > let a = while x < 10 do { x + 1 } where x = 0
 ```
 
 
-# Basic Functions
+## Basic Functions
 
-## Infix
+### Infix
 Functions consisting of symbols can be used infix, for example:
 
 ```
@@ -117,9 +117,50 @@ But can also be used prefix
 Note that when used infix the function is binary as only two parameters can be given. 
 
 
+### Lists
+There are various operators that work on lists
 
-## Arithmetic 
-## +
+Two lists can be appended by `++`
+For example:
+```
+SL > ++ (["hey" "there" "mufasa"])
+["hey", "there", "mufasa"]
+```
+
+Multiple lists can be intercalated by an list:
+```
+SL > " " ++= ["hey" "there"]
+"hey there"
+SL > ", " ++= ["hey" "there"]
+"hey, there"
+
+SL > ++= ([0,1] [[1,2],[3,4],[5,6]])
+[1.0, 2.0, 0.0, 1.0, 3.0, 4.0, 0.0, 1.0, 5.0, 6.0]
+```
+
+An item can be inserted to the beginning of a list by the cons operator (`:`)
+```
+SL > 1 : [3,4]
+[1.0, 3.0, 4.0]
+```
+
+If only a few elements of a list are needed:
+* `take (n, xs)` takes the first `n` elements of `xs`
+* `drop (n, xs)` removes the first `n` elements of `xs`
+
+A certain element of a list can be obtained using the `@` function
+which takes the form
+`xs @ n`
+and returns the `n`-th element (zero based indexing) in `xs`
+
+For example:
+
+```
+SL > [1,2,3,4] @ 2
+3.0
+```
+
+### Arithmetic 
 Regular addition. Takes multiple arguments.
 
 ```
@@ -136,25 +177,34 @@ In addition (no pun intended), the following arithmetical functions exist:
 Arithmetical operators can take any number of parameters.
 
 
-
-
-### <
-Binary less than. Produces a bool value; either true or false. Currently only accepts numbers. Strings might be later considered.
-
-### >
-Binary greater than.
-
-### ===
-Tests for equality
+### Ordinality
+These are binary operators that take two numbers and produce a boolean value; either true or false
+* <    -- Less than
+* >    -- Greater than
 
 For example: 
 
+```
+SL > 1 < 2
+true
+SL > 3 > 4
+false
+```
+
+
+### Equality
+This function returns whether two objects have the same value
+```
+expr1 == expr2
+```
+
+For example:
 ```
 SL > "test" == "test"
 true
 ```
 
-## ToNum
+### ToNum
 
 ```
 ToNum (val)
@@ -169,7 +219,7 @@ SL > ToNum ("1.65")
 1.65
 ```
 
-## ShowVal
+### ShowVal
 
 ```
 ShowVal (val)
@@ -184,7 +234,7 @@ SL > ShowVal (["the, hamster"])
 ""the, hamster""
 ```
 
-## ReadToEnd
+### ReadToEnd
 
 ```
 ReadToEnd (filename)
@@ -206,7 +256,7 @@ SL > ReadToEnd ("test.s")
 SL >
 ```
 
-## OpenFileR
+### OpenFileR
 
 ```
 OpenFileR(filename)
@@ -216,7 +266,7 @@ OpenFileR(filename)
 
 Returns a handle to read from file
 
-## OpenFileW
+### OpenFileW
 
 ```
 OpenFileW(filename)
@@ -226,7 +276,7 @@ OpenFileW(filename)
 
 Returns a handle to write to file
 
-## WriteLine
+### WriteLine
 
 ```
 WriteLine(handle, line)
@@ -236,7 +286,7 @@ WriteLine(handle, line)
 
 Writes a single line to the handle
 
-## ReadLine
+### ReadLine
 
 ```
 ReadLine(handle)
@@ -246,7 +296,7 @@ ReadLine(handle)
 
 Reads a single line from the handle
 
-# General IO
+## General IO
 The standard input buffer handle is given by `stdin` and the standard output buffer handle by `stdout`
 
 
