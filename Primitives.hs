@@ -166,6 +166,16 @@ sequenceAll env sqs = do
 sequenceAll' env filename = sequenceAll env (load filename)
 
 
+
+-- Basic Functional operations ------------------------------------------------------------------------------
+--mapOp :: [SExpr] -> SExpr
+--mapOp []
+
+
+
+
+
+
 -- List operations ------------------------------------------------------------------------------
 
 consOp :: [SExpr] -> SExpr
@@ -244,9 +254,12 @@ eval env (WhileDo varName initial condition body) = do
 
 --eval env (ExecFunc "let" [(Atom funcName), expr]) = defineVar funcName expr env
 eval env (BindLet funcName expr) = do 
-	localEnv <- copyEnv env
-	evaled <- eval localEnv expr
-	defineVar funcName evaled env
+	defineVar funcName expr env
+	return $ Empty
+	--localEnv <- copyEnv env
+	--evaled <- eval localEnv expr
+	--defineVar funcName evaled env
+
 eval env v@(BindFunc funcName args expr) = do
 			let ufunc = UserFunc args expr
 			defineVar funcName ufunc env
@@ -271,7 +284,7 @@ eval env (Atom "stdout") = return $ Handle stdout
 eval env (Atom a) = do
 					res <- getVar' a env
 					case res of 
-						(Just v) -> return v
+						(Just v) -> eval env v	 --return v
 						Nothing -> return $ Error ("Var " ++ show a ++ " not found" )  -- return $ Atom a
 
 eval env (Sequence []) = return Empty
@@ -279,8 +292,20 @@ eval env (Sequence xs) = do --first we need to make a local environment\
 			localEnv <- copyEnv env
 			res <- mapM (eval localEnv) xs
 			eval localEnv (last res)
---		| UserFunc String [String] SExpr
---eval env (UserFunc funcName []
+
+eval env (BindListGen start Empty inc) = do
+	s' <- eval env start >>= (return . unpackNum)
+	i' <- eval env inc >>= (return . unpackNum)
+	return $ List $ map Number [(s'),(s' + i')..]
+
+eval env (BindListGen start finish inc) = do
+	s' <- eval env start >>= (return . unpackNum)
+	e' <- eval env finish >>= (return . unpackNum)
+	i' <- eval env inc >>= (return . unpackNum)
+	return $ List $ map Number [(s'),(s' + i')..(e')]
+
+
+
 
 eval env s = return s
 

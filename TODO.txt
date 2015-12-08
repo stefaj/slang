@@ -50,15 +50,7 @@ if {== 1 1} then {1} else {1}
 
 
 TODO list
-fix sequence, prevent it from including empties
-{
-    let a = 10
-}
-gives incorrect answer
-
-
-add list concatenation [[1,2,3],[2,3,4]] -> [1,2,3,2,3,4]
-
+add negative numbers
 
 
 

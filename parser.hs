@@ -1,4 +1,4 @@
-module Parser(parseExpr, parseMain, parseSequenceNoBrackets, parseWhile, parseInfixFunc) where
+module Parser(parseExpr, parseMain, parseSequenceNoBrackets, parseWhile, parseListGen) where
 
 import Text.ParserCombinators.Parsec hiding (spaces)
 import qualified Text.ParserCombinators.Parsec as P(spaces)
@@ -166,6 +166,22 @@ parseComment = do
 	return ()
 
 
+parseListGen :: Parser SExpr
+parseListGen = do
+	char '['
+	start <- parseExpr
+	whiteskips
+	string ".."
+	whiteskips
+	end <- parseExpr <|> (return Empty)
+	whiteskips
+	char ';' <|> (return ' ')
+	inc <- parseExpr <|> (return $ Number 1)
+	char ']'
+	return $ BindListGen start end inc
+
+
+
 parseUserFunc :: Parser SExpr
 parseUserFunc = do 
 		string "let"
@@ -225,6 +241,7 @@ parseExpr' = do
 	a <- do (	
 				parseString
 				<|> parseNumber
+				<|> (try parseListGen)
 				<|> parseList
 				<|> parseSequence
 			--	<|> parseLet
@@ -232,6 +249,7 @@ parseExpr' = do
 				<|> (try parseUserFunc)		
 				<|> (try parseIf)
 				<|> (try parseWhile)
+
 				<|> (try parseFunc)
 				<|> parseAtom'
 							--	<|> (try parseAtom)	

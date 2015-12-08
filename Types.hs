@@ -15,6 +15,7 @@ data SExpr = Atom String
 		| ExecFunc String [SExpr]
 		| BindFunc String [String] SExpr
 		| BindLet String SExpr
+		| BindListGen SExpr SExpr SExpr -- start finish increment
 		| WhileDo String SExpr SExpr SExpr -- VarName, InitialValue, Condition, Body
 		| If SExpr SExpr SExpr -- Condition, Consequence, Alternative
 		| IOFunc ([SExpr] -> IO SExpr)
@@ -51,10 +52,11 @@ showSExpr (If cond _ _) = "If (" ++ (show cond) ++ ") ..."
 showSExpr (WhileDo varName initial condition body) = "while " ++ (show condition) ++ " do \n \t{ ... }\n where " ++ varName ++ " = " ++ (show initial)   
 showSExpr (Handle h) = "<<Handle " ++ (show h) ++ ">>"
 showSExpr (BindLet _ _) = "<<Unevaled Let binding>>"
+showSExpr (BindListGen start finish inc) = "[" ++ (show start) ++ ".." ++ (show finish) ++ ";" ++ (show inc) ++ "]"
 showSExpr (Error "") = ""
 showSExpr (Error s) = "Error: " ++ s
-showSExpr (Empty) = "Empty"
-
+--showSExpr (Empty) = "Empty"
+showSExpr (Empty) = ""
 
 
 
