@@ -1,4 +1,4 @@
-module Parser(parseExpr, parseMain, parseSequenceNoBrackets, parseWhile, parseListGen) where
+module Parser(parseExpr, parseMain, parseSequenceNoBrackets, parseWhile, parseListGen, parseUserFunc, parseFunc) where
 
 import Text.ParserCombinators.Parsec hiding (spaces)
 import qualified Text.ParserCombinators.Parsec as P(spaces)
@@ -12,8 +12,8 @@ uSymbols = oneOf "!@#$%^&*-+/<>"
 
 
 functionSeparators = skipMany1 (oneOf " ")
-listSeparators = skipMany1 (oneOf " ,;")
-sequenceSeparators = skipMany1 (oneOf "\n; ")
+listSeparators = skipMany1 (oneOf ",;")
+sequenceSeparators = skipMany1 (oneOf " \n;")
 --sequenceSkips = skipMany (oneOf "\n ")
 
 whiteskips = skipMany (oneOf " \n\t")
@@ -44,11 +44,11 @@ parseString = do
 
 parseInfixFunc :: Parser SExpr
 parseInfixFunc = do
-	arg1 <- parseExpr'
+	arg1 <- (parseFuncArgs (fail "noparams"))
 	char ' ' <|> (return ' ')
 	funcName <- many1 symbol
 	char ' ' <|> (return ' ')
-	arg2 <- parseExpr'
+	arg2 <- (parseFuncArgs (fail "noparams"))
 	return $ ExecFunc funcName [arg1, arg2]
 
 parseAtom :: Parser SExpr
@@ -63,23 +63,14 @@ parseAtom = do
 
 parseFunc :: Parser SExpr
 parseFunc = do
-
-
 	funcName <- many (letter <|> symbol)
 	char ' '
-
 	args <- sepBy1 (parseFuncArgs (fail "noparams")) functionSeparators -- Previously was sepBy
-
-	return $ ExecFunc funcName args
-	
-
---	if (c == 'a') 
---		then return $ Atom funcName
---		else
---			do
---				args <- sepBy1 parseExpr functionSeparators -- Previously was sepBy
---				return $ ExecFunc funcName args
-
+	let args' = removeEmpties args
+	--error $ "poes; " ++ (show $ length args') ++ "; " -- ++ (show args)
+	if args' == [] 
+		then fail "noargs"
+		else return $ ExecFunc funcName args'
 
 
 
@@ -154,7 +145,7 @@ parseMain = do
 	--sequenceSkips <|> (return ())
 	x <- (try $ endBy parseExpr sequenceSeparators) <|> (return [])
 	y <- parseExpr <|> (return Empty)
-	let res = x ++ (filter (\x -> x /= Empty) [y])
+	let res = x ++ (removeEmpties [y])
 	--sequenceSkips <|> (return ())
 	whiteskips
 	return res
@@ -211,7 +202,8 @@ parseUserFunc = do
 --		string " = "		
 --		func <- parseExpr
 --		return $ BindLet funcName func  	
-	 
+removeEmpties = filter (\x -> x /= Empty)	 
+
 removeEmptyStrings :: [String] -> [String]
 removeEmptyStrings [] = []
 removeEmptyStrings (x:xs)
@@ -241,16 +233,21 @@ parseExpr' = do
 	parseFuncArgs (try parseFunc)
 
 
+
+parseFuncArgs' add = do
+	(try parseInfixFunc) 
+	<|>	parseFuncArgs (try add)
+
 	
 parseFuncArgs add = do
 	P.spaces
 
-	parseString
-	<|> parseNumber
+	(try parseString)
+	<|> (try parseNumber)
 	<|> (try parseListGen)
-	<|> parseList
-	<|> parseSequence
---	<|> parseLet
+	<|> (try parseList)
+	<|> (try parseSequence)
+
 
 	<|> (try parseUserFunc)		
 	<|> (try parseIf)
@@ -258,7 +255,5 @@ parseFuncArgs add = do
 
 	<|> add
 	<|> parseAtom'
-	<|> parseNothing
-
-	--until_ (== "quit") (readPrompt "Lisp>>> ") evalAndPrint 
+--	<|> (try parseNothing)
 

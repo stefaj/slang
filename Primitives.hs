@@ -94,12 +94,14 @@ apply funcName env args = do
 	case res of 
 		(Just (IOFunc func)) -> func args
 		(Just (Func func)) -> return $ func args
-		(Just (UserFunc argNames func)) -> if (length args /= (length argNames)) 
-			then return $ Error ("Func args do not match; expected" ++ (show (length argNames)) ++ " found" ++ (show (length args)) )
-			else do
-				newE <- bindVars env (zip argNames args)
-				func' <- eval newE func
-				return func'
+		(Just (UserFunc argNames func)) -> 
+			--if (length args /= (length argNames)) 
+				--then return $ Error ("Func args do not match; expected" ++ (show (length argNames)) ++ " found" ++ (show (length args)) )
+				--else 
+				do
+					newE <- bindVars env (zip argNames args)
+					func' <- eval newE func
+					return func'
 		(Just s@(Atom a)) -> return $ s
 		otherwise -> return $ Error ("Func " ++ funcName ++ " not found" )  -- return $ Atom a
 
