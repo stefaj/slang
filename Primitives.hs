@@ -29,13 +29,16 @@ basicFunctions = [
 				(":", consOp),
 				("==", equals),
 				("ToNum", toNum),
-				("ShowVal", showVal)]
+				("ShowVal", showVal),
+				("map", mapOp)]
 
 ioFunctions = [("ReadToEnd", readContents),
 				("OpenFileR", makePort ReadMode),
 				("OpenFileW", makePort WriteMode),
 				("WriteLine", writeLineFunc),
 				("ReadLine", readLineFunc)]
+
+
 
 
 basicBindingsEnv :: IO Env
@@ -168,9 +171,9 @@ sequenceAll' env filename = sequenceAll env (load filename)
 
 
 -- Basic Functional operations ------------------------------------------------------------------------------
---mapOp :: [SExpr] -> SExpr
---mapOp []
-
+mapOp :: [SExpr] -> SExpr
+mapOp [(Atom func), (List lst)] = List $ map (\x -> ExecFunc func [x]) lst
+mapOp [s,a] = String $ (show s) ++ "; " ++ (show a)
 
 
 
@@ -239,6 +242,7 @@ eval :: Env -> SExpr -> IO SExpr
 eval env v@(Number _) = return v
 eval env v@(String _) = return v
 eval env v@(Boolean _) = return v
+eval env v@(ExecFunc "map" args) = eval env (mapOp args)
 eval env (List [s]) = eval env s
 eval env (If cond conseq altern) = do
 	cond' <- eval env cond

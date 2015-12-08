@@ -21,13 +21,14 @@ whiteskips = skipMany (oneOf " \n\t")
 
 parseNumber :: Parser SExpr
 parseNumber = do
+	neg <- char '-' <|> (return ' ')
 	x <- many1 digit
 	d <- (char '.') <|> (return ' ')
 	y <- (many1 digit) <|> (return "")
 	return $ Number $ read $ 
 		if d == ' ' 
-			then x
-			else x ++ "." ++ y
+			then (neg:x)
+			else (neg:x) ++ "." ++ y
 	--return $ Number $ read x
 
 
@@ -66,10 +67,9 @@ parseFunc = do
 
 	funcName <- many (letter <|> symbol)
 	char ' '
-	char '('
-	args <- sepBy1 parseExpr functionSeparators -- Previously was sepBy
-	char ')'
-	-- c <- char ' ' <|> (return 'a')
+
+	args <- sepBy1 (parseFuncArgs (fail "noparams")) functionSeparators -- Previously was sepBy
+
 	return $ ExecFunc funcName args
 	
 
@@ -166,6 +166,12 @@ parseComment = do
 	return ()
 
 
+parseNothing :: Parser SExpr
+parseNothing = do
+	string ""
+	return $ Empty
+
+
 parseListGen :: Parser SExpr
 parseListGen = do
 	char '['
@@ -232,34 +238,27 @@ parseExpr = do
 	return a
 
 parseExpr' = do
+	parseFuncArgs (try parseFunc)
 
+
+	
+parseFuncArgs add = do
 	P.spaces
-	--(try parseComment) <|>
-	
 
-	--skipMany (oneOf " ")
-	a <- do (	
-				parseString
-				<|> parseNumber
-				<|> (try parseListGen)
-				<|> parseList
-				<|> parseSequence
-			--	<|> parseLet
+	parseString
+	<|> parseNumber
+	<|> (try parseListGen)
+	<|> parseList
+	<|> parseSequence
+--	<|> parseLet
 
-				<|> (try parseUserFunc)		
-				<|> (try parseIf)
-				<|> (try parseWhile)
+	<|> (try parseUserFunc)		
+	<|> (try parseIf)
+	<|> (try parseWhile)
 
-				<|> (try parseFunc)
-				<|> parseAtom'
-							--	<|> (try parseAtom)	
-
-				)
-	--P.spaces
-	return a
-
-	
-
+	<|> add
+	<|> parseAtom'
+	<|> parseNothing
 
 	--until_ (== "quit") (readPrompt "Lisp>>> ") evalAndPrint 
 

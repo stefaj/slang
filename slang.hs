@@ -50,7 +50,9 @@ readPrompt prompt = flushStr prompt >> getLine
 evalAndPrint' :: Env -> String -> Parser SExpr -> IO ()
 evalAndPrint' env expr parseType = do
 						sexpr <- evalString' env expr parseType
-						putStrLn sexpr
+						if (sexpr == "")
+							then putStr ""
+							else putStrLn sexpr
 
 evalAndPrint :: Env -> String -> IO ()
 evalAndPrint env expr = evalAndPrint' env expr parseExpr
@@ -90,8 +92,8 @@ main = do
 
 -- tests
 -- parsing
-test 1 = isValidExpr parseExpr "{1}"
-test 2 = isValidExpr parseExpr "{+ 1 1}"
+test 1 = isValidExpr parseExpr "{ 1 }"
+test 2 = isValidExpr parseExpr "{ + (1 1) }"
 test 3 = isValidExpr parseExpr "+ 1 1"
 test 4 = isValidExpr parseExpr "func fib a b = 1"
 test 5 = isValidExpr parseExpr "let a = 10"

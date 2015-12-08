@@ -41,7 +41,7 @@ showSExpr (List xs) = "[" ++
 showSExpr (Sequence xs) = "{" ++  
 							intercalate "\n" (map showSExpr xs) 
 						++ "}"
-showSExpr (BindFunc funcName args expr)  = "Function " ++ funcName ++ " " ++ (unwords $ map show args) ++ " " ++ (show expr)
+showSExpr (BindFunc funcName args expr)  = "Function " ++ funcName ++ " " ++ (unwords $ map show args) ++ " = " ++ (show expr)
 showSExpr (Func _) =  "<<Generic Function>>" --s ++ " " ++  
 							--intercalate " " (map showSExpr args) 
 
